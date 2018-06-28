@@ -1,0 +1,79 @@
+/**
+* 使用新浪开放 api 获取当前位置：
+* 返回的数据格式如下：
+*	{
+*		"ret": 1,
+*		"start": "180.149.132.0",
+*		"end": "180.149.159.255",
+*		"country": "中国", // 国家
+*		"province": "北京", // 省份
+*		"city": "北京", // 城市
+*		"district": "",
+*		"isp": "电信", // 运营商
+*		"type": "企业",
+*		"desc": "中国电信集团电信"
+*	}
+/**
+* 获取地理定位信息，使用腾讯地图进行定位
+* @param getSuccFunc 获取成功的回调函数回调函数
+*/
+function getGeolocation(getSuccFunc)
+{
+	var succResult = {}; // 请求位置成功的结果
+	var geolocation = new soso.maps.Geolocation();
+	var positionParam = {
+		locationMode: "CLIENT_IP" // ip定位
+	};
+	var positionCallback = function(data, status){
+		if(status === "OK")
+		{
+			if(data && data.latLng)
+			{
+			succResult.latitude = data.latLng.lat; // 纬度
+			succResult.longitude = data.latLng.lng; // 经度
+			}
+		}
+		if(getSuccFunc)
+		{
+			getSuccFunc(succResult);
+		}
+	};
+	geolocation.position(positionParam, positionCallback);
+}
+
+/**
+* 根据电话号码获取位置信息，使用拍拍开放 api
+* @param phoneNo 电话号码
+* @param succFunc 调用接口成功的回调函数
+* 回调函数入参的数据格式如下：
+* 	{
+*		"mobile": "18576648552",
+*		"province": "广东",
+*		"isp": "中国联通",
+*		"stock": "1",
+*		"amount": "10000",
+*		"maxprice": "0",
+*		"minprice": "0",
+*		"cityname": "深圳"
+*	}
+*/
+function getPositionByPhoneNo(phoneNo, succFunc)
+{
+	$.ajax({
+		url: "",
+		type: "post",
+		data: {mobile: phoneNo, amount: 10000},
+		dataType: "jsonp",
+		jsonp: "callname",
+		jsonpCallback: "getPhoneNumInfoExtCallback",
+		success: function(data){
+		if(succFunc)
+		{
+			succFunc(data);
+		}
+		},
+		error: function(xhr, errorCode){
+			console.log("根据手机号获取归属地服务失败【前端】");
+		}
+	});
+}

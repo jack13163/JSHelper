@@ -1,0 +1,568 @@
+//深度克隆对象
+function cloneObject(obj){
+    var cloneObj;
+    cloneObj=(obj instanceof Array) ? []:{}; //判断对象类型，新建克隆对象
+    for(var i in obj){
+        if(obj.hasOwnProperty(i)){
+            cloneObj[i]=(obj instanceof Array) ? cloneObject(obj[i]):obj[i];
+        }
+    }
+    return cloneObj;
+}
+
+
+//数组去重
+function uniqArray(ary)
+{
+    var obj={};
+    var result=[];
+    for (var i = 0; i < ary.length; i++) {
+        if (ary[i] && !obj[ary[i]]) {
+            obj[ary[i]]=1;
+            result.push(ary[i]);
+        };
+    };
+    return result;
+}
+
+//trim函数，去除字符串空格
+function trim(str){
+    for (var i = 0; i < str.length; i++) {
+        if(str.charAt(i)!=" " && str.charAt(i)!="   "){
+            break;
+        }
+    };
+    var str1=str.substring(i,str.length);
+
+    for (var j = str1.length-1; j >=0; j--) {
+        if(str1.charAt(j)!=" " && str1.charAt(j)!="   "){
+            break;
+        }
+    };
+    var str2=str1.substring(0,j+1);
+    return str2;
+} 
+
+//遍历数组
+function each(ary,fn){
+    for (var i = 0; i < ary.length; i++) {
+        fn(ary[i],i);
+    };
+}
+
+//获取对象元素长度
+function getObjectLength(obj){
+    var num=0;
+    for(var i in obj){
+        num++;
+    }
+    return num;
+}
+
+//为element添加样式newClassName
+function addClass(element,newClassName){
+    var oldClass=element.className.split(" ");
+    for (var i = 0; i < oldClass.length; i++) {
+        if(oldClass[i]==newClassName)
+            return;
+    };
+    oldClass.push(newClassName);
+    oldClass.join(" ");
+}
+
+//为element移除样式oldClassName
+function removeClass(element,oldClassName){
+    var newClassNames=[];
+    var classNames=element.className.split(" ");
+    for (var i = 0; i < classNames.length; i++) {
+        if(classNames[i]==oldClassName){
+            continue;
+        }
+        newClassNames.push(classNames[i]);
+    };
+    element.className=newClassNames.join(" ");
+}
+
+//判断siblingNode和element是否为同一个父元素下的同一级的元素
+function isSiblingNode(element,siblingNode){
+    if(element.parentNode===siblingNode.parentNode)
+        return true;
+    else
+        return false;
+}
+
+//获取element相对于浏览器窗口的位置，返回一个对象{x, y}
+function getPosition(element) {
+    var obj=element.getBoundingClientRect();
+    var x=obj.left;
+    var y=obj.top;
+    return {"x":x,"y":y};
+}
+
+//获取相邻的下一个兄弟节点的兼容写法
+/*
+    * 1 元素节点  
+    * 2属性 
+    * 3文本 
+    * 8注释 
+    * 9document 
+*/   
+function nextSibling(curvObj) {  
+    var currentNode = curvObj.nextSibling;  
+    if ( currentNode.nodeType == 1 ) {  
+      return currentNode;  
+    }  
+    return nextSibling(currentNode);  
+}  
+
+//给一个element绑定一个针对event事件的响应，响应函数为listener
+function addEvent(element,event,listener){
+    if (window.addEventListener) {
+        element.addEventListener(event,listener,false);
+    }
+    else{
+        element.attachEvent("on"+event,listener);
+    }
+}
+
+//删除事件侦听
+function removeEvent(element,event,listener){
+    if (window.addEventListener) {
+        element.removeEventListener(event,listener);
+    }
+    else{
+        element.detachEvent("on"+event,listener);
+    }
+}
+
+//实现对click事件的绑定
+function addClickEvent(element, listener) {
+    if (window.addEventListener) {
+        element.addEventListener('click',listener,false);
+    }
+    else{
+        element.attachEvent('onclick',listener);
+    }
+}
+
+//实现对于按Enter键时的事件绑定
+function addEnterEvent(element, listener) {
+     if (window.addEventListener) {
+        element.addEventListener('keydown',keyFun,false);
+
+    }
+    else{
+        element.attachEvent('onkeydown',keyFun);
+    }
+    function keyFun(e){
+        var e=e || window.event;
+        if(e.keyCode==13){
+            listener();
+        }
+    }
+}
+
+//事件代理
+function delegateEvent(element, tag, eventName, listener) {
+    addEvent(element,eventName,delegateFun);
+    function delegateFun(e){
+        var e=e || window.event;
+        var target=e.target || e.srcElement;
+        if(target.nodeName.toLowerCase()==tag){
+            listener.apply(target,arguments);
+        }
+    }
+
+}
+
+//实现一个简单的Query
+function $(selector) {
+   return document.querySelector(selector);
+}
+
+//设置cookie
+function setCookie(cookieName, cookieValue, expiredays) {
+    var date=new Date();
+    date.setDate(date.getDate()+expiredays);
+    document.cookie=cookieName+'='+cookieValue+'; expries='+((expiredays==null) ? "":date.toGMTString())+'; path=/';
+}
+
+//获取cookie值
+function getCookie(cookieName) {
+    var cookies=document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var userData=cookies[i].split('=');
+        if (userData[0]==cookieName) {
+            return userData[1];
+        };
+    };
+    return '';
+}
+
+//ajax封装函数
+function ajax(url,options,type){
+    var oAjax=null;
+    var type=type || "GET";
+    //alert(type);
+    if(window.XMLHttpRequest){
+        oAjax=new XMLHttpRequest();
+    }
+    else{
+        oAjax=new ActiveXObject('Microsoft.XMLHTTP');
+    }
+    oAjax.onreadystatechange=function(){
+        if (oAjax.readyState==4) {
+            if (oAjax.status==200) {
+                options.onsuccess(oAjax.responseText);
+            } 
+            else{
+                options.onfail();
+            };
+        };
+    }
+
+    url=url+"?name="+options.data.name+"&password="+options.data.password+"&t="+Math.random();
+    oAjax.open(type,url,true);
+    oAjax.send();
+}
+
+//Js获取页面地址参数 
+function getUrlPara(paraName) 
+{ 
+	var sUrl = location.href; 
+	var sReg = "(?://?|&){1}" + paraName + "=([^&]*)" 
+	var re = new RegExp(sReg, "gi"); 
+	re.exec(sUrl); 
+	return RegExp.$1; 
+} 
+
+//地址跳转 
+var pn = $("#gotopagenum").val();//#gotopagenum是文本框的id属性 
+location.href = "NewList.aspx?pagenum="+pn;//location.href实现客户端页面的跳转 
+
+//千分位 
+function Convert(money) 
+{ 
+	var s = money; //获取小数型数据 
+	s += ""; 
+	if (s.indexOf(".") == -1) s += ".00"; //如果没有小数点，在后面补个小数点和00 
+	if (/\.\d$/.test(s)) s += "0"; //正则判断 
+	while (/\d{4}(\.|,)/.test(s)) //符合条件则进行替换 
+	s = s.replace(/(\d)(\d{3}(\.|,))/, "$1,$2"); //每隔3位添加一个 
+	return s; 
+} 
+
+//判断是否数字 
+function IsNumeric(txt) { 
+	if (txt == "") { 
+		return false; 
+	} 
+	if (txt.indexOf(",") > 0) { 
+		txt = txt.replace(",", ""); 
+	} 
+	if (isNaN(txt)) { 
+		return false; 
+	} 
+	else { 
+		return true; 
+	} 
+} 
+
+//将数字进行两位小数的格式化 
+function changeTwoDecimal_f(x) { 
+	var f_x = parseFloat(x); 
+	if (isNaN(f_x)) { 
+		alert('function:changeTwoDecimal->parameter error'); 
+		return false; 
+	} 
+	f_x = Math.round(f_x * 100) / 100; 
+	var s_x = f_x.toString(); 
+	var pos_decimal = s_x.indexOf('.'); 
+	if (pos_decimal < 0) { 
+		pos_decimal = s_x.length; 
+		s_x += '.'; 
+	} 
+	while (s_x.length <= pos_decimal + 2) { 
+		s_x += '0'; 
+	} 
+	return s_x; 
+} 
+
+//获取时间戳，在某些情景下代替Guid 
+function NowTimeCode() 
+{ 
+	var Result=""; 
+	var now = new Date(); 
+	var year = now.getYear(); 
+	if (now.getYear() < 1900) { 
+		year = now.getYear() + 1900; 
+	} 
+	var month = now.getMonth() + 1; 
+	var day = now.getDate(); 
+	var hour = now.getHours(); 
+	var minutes = now.getMinutes(); 
+	var second = now.getSeconds(); 
+	var millisecond = now.getMilliseconds(); 
+
+	if (month < 10) month = "0" + month; 
+	if (day < 10) day = "0"+ day; 
+	if (hour < 10) hour = "0"+ hour; 
+	if (minutes < 10) minutes = "0"+ minutes; 
+	if (second < 10) second = "0"+ second; 
+
+	if (millisecond < 10){
+		millisecond = "00"+ millisecond; 
+	}else{
+		if (millisecond < 100){ 
+			millisecond = "0"+ millisecond; 
+		} 
+	} 
+	Result = year.toString() + month.toString() + day.toString() + hour.toString() + minutes.toString() + second.toString() + millisecond.toString(); 
+	return Result; 
+} 
+
+/**
+ * 隐藏元素
+ * @param {String} elem
+ */
+function hide(elem){
+    var curDisplay = getStyle(elem, 'display');
+     
+    if(curDisplay != 'none'){
+        elem.oldDisplay = curDisplay;
+    }
+    elem.style.display = 'none';
+}
+ 
+/**
+ * 显示元素
+ * @param {String} elem
+ */
+function show(elem){
+    elem.style.display = elem.oldDisply || 'block';
+}
+ 
+/**
+ * 设置透明度
+ * @param {Object} elem
+ * @param {Object} level (0-100)
+ */
+function setOpacity(elem, level){
+    if(elem.filters){ //如果是IE
+        elem.style.filter = 'alpha(opacity=' + level + ')';
+        //必须设置zoom,要不然透明度在IE下不生效  From:http://blog.csdn.net/dxx1988/article/details/6581430
+        elem.style.zoom = 1;
+    } else { //否则是W3C
+        elem.style.opacity = level / 100;
+    }
+}
+ 
+/**
+ * 滑动
+ * @param {Object} elem
+ */
+function slideDown(elem){
+    //elem.style.height = '0px';
+     
+    show(elem);
+    var h = fullHeight(elem);
+     
+    for(var i=0; i<=100; i+=5){
+        (function(){
+            var pos = i;
+             
+            setTimeout(function(){
+                elem.style.height = (pos/100) * h + 'px';
+            }, (pos + 1) * 5);
+        })();
+    }
+}
+//slideDown($('pText'));
+//alert(fullHeight($('pText')));
+ 
+/**
+ * 透明度渐显 From: http://mrthink.net/js-fadein-fadeout-fadeto/
+ * @param {Object} elem
+ * @param {Number} speed 淡入速度,正整数(可选)
+ * @param {Number} opacity 淡入到指定的透明度,0~100(可选)
+ */
+function fadeInThink(elem, speed, opacity){
+    speed = speed || 20;
+    opacity = opacity || 100;
+     
+    show(elem);
+    setOpacity(elem, 0);
+    //初始化透明度变化值为0
+    var val = 0;
+    //循环将透明值以5递增,即淡入效果
+    (function(){
+        setOpacity(elem, val);
+        val += 5;
+        if (val <= opacity) {
+            setTimeout(arguments.callee, speed)
+        }
+    })();
+ 
+}
+ 
+ 
+/**
+ * 透明度渐显
+ * @param {Object} elem
+ */
+function fadeIn(elem){
+    //setOpacity(emel, 0);
+     
+    show(elem);
+    for(var i=0; i<=100; i+=10){
+        (function(){
+            var pos = i;
+            setTimeout(function(){
+                setOpacity(elem, pos);
+            }, (pos + 1) * 10);
+        })();
+    }
+}
+ 
+/**
+ * 透明度渐隐 From: http://mrthink.net/js-fadein-fadeout-fadeto/
+ * @param {Object} elem
+ */
+function fadeOut(elem){
+    var val = 100;
+     
+    (function(){
+        setOpacity(elem, val);
+        val -= 5;
+        if(val >= 0){
+            setTimeout(arguments.callee, 50);
+        } else if(val < 0){
+            hide(elem);
+        }
+    })();
+}
+ 
+//fadeInThink($('pText'));
+ 
+/**
+* 光标的水平位置
+* @param {Object} e
+*/
+function getX(e){
+    e = e || window.event;
+     
+    return e.pageX || e.clientX + document.body.scrollLeft;
+}
+ 
+/**
+* 光标的垂直位置
+* @param {Object} e
+*/
+function getY(e){
+    e = e || window.event;
+     
+    return e.pageY || e.clientY + document.body.scrollTop;
+}
+ 
+/**
+ * 获得鼠标相对于当前元素的X位置
+ * @param {Object} e
+ */
+function getElementX(e){
+    return (e && e.layerX) || window.event.offsetX;
+}
+ 
+/**
+ * 获得鼠标相对于当前元素的Y位置
+ * @param {Object} e
+ */
+function getElementY(e){
+    return (e && e.layerY) || window.event.offsetY;
+}
+ 
+/**
+ * 当前页面的高度
+ */
+function pageHeight(){
+    return document.body.scrollHeight;
+}
+ 
+/**
+ * 当前页面的宽度
+ */
+function pageWidth(){
+    return document.body.scrollWidth;
+}
+ 
+//alert(pageHeight());
+ 
+/**
+ * 视口的高度
+ */
+function windowHeight(){
+    var de = document.documentElement;
+     
+    return self.innerHeight || (de && de.clientHeight) || document.body.clientHeight;
+}
+ 
+/**
+ * 视口的高度
+ */
+function windowWidth(){
+    var de = document.documentElement;
+     
+    return self.innerWidth || (de && de.clientWidth) || document.body.clientWidth;
+}
+ 
+/**
+ * 浏览器水平滚动位置
+ */
+function scrollX(){
+    var de = document.documentElement;
+     
+    return self.pageOffsetset ||  (de && de.scrollLeft) || document.body.scrollLeft;
+}
+ 
+/**
+* 浏览器垂直滚动位置
+ */
+function scrollY(){
+    var de = document.documentElement;
+     
+    return self.pageYOffset || (de && de.scrollTop) || document.body.scrollTop;
+}
+
+//解析URL上的字符串参数：
+function getQueryString(parm){
+    var reg = new RegExp("(^|&)" + parm + "=([^&]*)(&|$)", "i");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return unescape(r[2]); 
+    return null;
+}
+
+/**
+* 将数字转换成字符串
+* 说明:直接使用 toFixed 方法会进行四舍五入，因此写一个将数字转换为指定小数位数字符串的方法
+* @param sourceData 源数据
+* @param decimalLen 小数的位数
+*/
+function numberToString(sourceData, decimalLen)
+{
+	decimalLen = typeof(decimalLen) == undefined ? 0 : decimalLen;
+	var result = sourceData + "";
+	var integerStr = null; // 整数部分
+	var decimalStr = null; // 小数部分
+	if(result.indexOf(".") == -1)
+	{
+		result = Number(result).toFixed(decimalLen);
+	}
+	else
+	{
+		integerStr = result.substring(0, result.indexOf(".")); // 整数部分
+		decimalStr = /.d+/.exec(result); // 小数部分
+		decimalStr = Number(decimalStr);
+		decimalStr = decimalStr.toPrecision(decimalLen).substr(0, decimalLen + 2);
+		result = integerStr + decimalStr.substr(1);
+	}
+	return result;
+}
